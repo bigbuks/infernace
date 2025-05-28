@@ -1,10 +1,16 @@
 const express = require('express'); //to require express
 const mongoose = require('mongoose'); //to require mongoose
 const cors = require('cors'); //to require cors
+const cookieParser = require('cookie-parser'); //to require cookie-parser
 require('dotenv').config(); //to require dotenv
 
 //connection to my env file 
 const dbUrl = process.env.MONGODB_URL;
+
+//importing routes
+const productRoute = require('./modules/product/productRoute');
+const adminRoutes = require('./modules/admin/adminRoutes');
+const userRoutes = require('./modules/user/userRoutes');
 
 //to connect to the mongodb server
 mongoose.connect(dbUrl).then(() => {
@@ -16,6 +22,7 @@ mongoose.connect(dbUrl).then(() => {
 
 //middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -23,7 +30,10 @@ app.use(cors({
     credentials: true,
 }));
 
-
+//mounting api routes
+app.use('/api', productRoute);
+app.use('/api', adminRoutes);
+app.use('/api', userRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
