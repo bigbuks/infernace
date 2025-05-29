@@ -33,12 +33,18 @@ const CartSchema = new mongoose.Schema(
             min: 0,
             default: 0,
         },
-        // isActive: {
-        //     type: Boolean,
-        //     default: true,
-        // },
     },
     { timestamps: true }
 );
+
+//index for faster user lookup
+CartSchema.index({ user: 1 });
+
+CartSchema.pre('save', function (next) {
+    this.totalPrice = this.items.reduce((acc, item) => {
+        return acc + item.price * item.quantity;
+    }, 0);
+    next();
+});
 
 module.exports = mongoose.model('Cart', CartSchema);
