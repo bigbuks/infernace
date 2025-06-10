@@ -49,6 +49,15 @@ exports.authenticateUser = async (req, res, next) => {
             });
         }
 
+        // Check if email is verified
+        if (!user.isEmailVerified) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Please verify your email address first.',
+                emailVerificationRequired: true
+            });
+        }
+
         // Attach user data to the request
         req.user = user;
         next();

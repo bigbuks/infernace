@@ -81,6 +81,34 @@ const adminRegisterRateLimit = rateLimit({
     legacyHeaders: false,
 });
 
+//email verification rate limiter
+const emailVerificationRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // Allow 3 resend attempts per hour per IP
+    message: {
+        success: false,
+        message: 'Too many verification email requests. Please try again after 1 hour.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return `${req.ip}:${req.body.email || 'unknown'}`;
+    }
+});
+
+const passwordResetRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // Allow 3 password reset attempts per hour per IP
+    message: {
+        success: false,
+        message: 'Too many password reset requests. Please try again after 1 hour.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return `${req.ip}:${req.body.email || req.body.token || 'unknown'}`;
+    }
+});
 
 
 // Export the rate limiters
@@ -90,5 +118,7 @@ module.exports = {
     generalRateLimit, 
     adminRateLimit,
     adminLoginRateLimit,
-    adminRegisterRateLimit
+    adminRegisterRateLimit,
+    emailVerificationRateLimit,
+    passwordResetRateLimit
 };

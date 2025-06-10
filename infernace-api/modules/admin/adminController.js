@@ -64,6 +64,9 @@ exports.addproduct = async (req, res) => {
             }
         }
 
+        const stockStatus = inStock !== undefined ? inStock : true;
+        const quantityValue = quantity ? parseInt(quantity) : 0;
+
         // Create new product
         const newProduct = new Product({
             name: name.trim(),
@@ -71,8 +74,9 @@ exports.addproduct = async (req, res) => {
             price: priceValue.toString(),
             category,
             subCategory,
-            inStock: inStock !== undefined ? inStock : true,
-            quantity: quantity ? parseInt(quantity) : 0,
+            inStock: stockStatus,
+            quantity: quantityValue,
+            isOutOfStock: !stockStatus || quantityValue <= 0,
             images: uploadedImages.length > 0 ? uploadedImages : [] // Store as array
         });
 
@@ -138,6 +142,11 @@ exports.updateproduct = async (req, res) => {
         if (subCategory) updateData.subCategory = subCategory;
         if (inStock !== undefined) updateData.inStock = inStock;
         if (quantity !== undefined) updateData.quantity = parseInt(quantity);
+
+        // Auto-calculate isOutOfStock based on inStock and quantity
+        const finalInStock = inStock !== undefined ? inStock : existingProduct.inStock;
+        const finalQuantity = quantity !== undefined ? parseInt(quantity) : existingProduct.quantity;
+        updateData.isOutOfStock = !finalInStock || finalQuantity <= 0;
 
         // Handle new image uploads
         const newImages = [];

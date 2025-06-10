@@ -11,6 +11,7 @@ const dbUrl = process.env.MONGODB_URL;
 const productRoute = require('./modules/product/productRoute');
 const adminRoutes = require('./modules/admin/adminRoutes');
 const userRoutes = require('./modules/user/userRoutes');
+const cartRoutes = require('./modules/cart/cartRoutes');
 
 //to connect to the mongodb server
 mongoose.connect(dbUrl).then(() => {
@@ -34,6 +35,7 @@ app.use(cors({
 app.use('/api', productRoute);
 app.use('/api', adminRoutes);
 app.use('/api', userRoutes);
+app.use('/api', cartRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
