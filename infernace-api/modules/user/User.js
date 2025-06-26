@@ -79,7 +79,7 @@ userSchema.methods.generatePasswordResetToken = function() {
     const crypto = require('crypto'); //require crypto
 
     //generate a random token 
-    const token = clientEncryption.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex');
 
     //set token and expiration (1 hour)
     this.passwordResetToken = token;

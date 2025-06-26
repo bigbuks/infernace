@@ -4,19 +4,6 @@ const { cloudinary } = require('../../config/cloudinary');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-// cookie name
-const COOKIE_NAME = 'adminToken';
-
-// cookie configuration
-const cookieConfig = {
-    httpOnly: true, // Prevent XSS attacks
-    secure: process.env.NODE_ENV === 'development', // Use HTTPS in development
-    sameSite: process.env.NODE_ENV === 'development' ? 'none' : 'lax', // CSRF protection
-    maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
-    path: '/' // Cookie available for all routes
-};
-
-
 // Add product to the database
 exports.addproduct = async (req, res) => {
     try {
@@ -296,10 +283,9 @@ const generateToken = (id) => {
     }
 
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN
+        expiresIn: process.env.JWT_EXPIRES_IN || '24h'
     });
 };
-
 
 // Admin registration
 exports.adminRegister = async (req, res) => {
@@ -349,9 +335,6 @@ exports.adminRegister = async (req, res) => {
 
         // Generate token
         const token = generateToken(savedAdmin._id);
-
-        // Set token in cookie
-        res.cookie(COOKIE_NAME, token, cookieConfig);
 
         res.status(201).json({
             success: true,
@@ -430,9 +413,6 @@ exports.adminLogin = async (req, res) => {
         // Generate token
         const token = generateToken(admin._id);
 
-        // Set token in cookie
-        res.cookie(COOKIE_NAME, token, cookieConfig);
-
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -458,17 +438,9 @@ exports.adminLogin = async (req, res) => {
 // Admin logout
 exports.adminLogout = async (req, res) => {
     try {
-        // Clear the cookie
-        res.clearCookie(COOKIE_NAME, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'development',
-            sameSite: process.env.NODE_ENV === 'development' ? 'none' : 'lax',
-            path: '/'
-        });
-
         res.status(200).json({
             success: true,
-            message: 'Logout successful'
+            message: 'Logout successful. Please remove the token from your client.'
         });
 
     } catch (error) {

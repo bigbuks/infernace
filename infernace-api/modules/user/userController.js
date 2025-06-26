@@ -4,18 +4,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../../config/sendEmail'); 
 
-// Cookie name
-const COOKIE_NAME = 'userToken';
-
-// Cookie configuration
-const cookieConfig = {
-    httpOnly: true, // Prevent XSS attacks
-    secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none', // CSRF protection
-    maxAge: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
-    path: '/' // Cookie available for all routes
-};
-
 // Generate JWT token
 const generateToken = (id) => {
     // Check if JWT_SECRET is set
@@ -197,8 +185,8 @@ exports.registerUser = async (req, res) => {
         const savedUser = await newUser.save();
 
         // create verification link
-        const baseUrl =process.env.BASE_URL || 'http://localhost:5173';
-        const verificationLink = `${baseUrl}/api/verify-email?token=${verificationToken}`;
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+        const verificationLink = `${baseUrl}/api/verify-email/${verificationToken}`;
 
         // Send verification email
         try {
@@ -292,12 +280,6 @@ exports.verifyEmail = async (req, res) => {
         user.clearEmailVerificationToken(); // Clear the token and expiration
         await user.save();
 
-        // Verify email
-        user.isEmailVerified = true;
-        user.emailVerificationToken = undefined;
-        user.emailVerificationExpires = undefined;
-        await user.save();
-
         res.status(200).json({
             success: true,
             message: 'Email verified successfully! You can now log in.',
@@ -362,7 +344,7 @@ exports.resendVerificationEmail = async (req, res) => {
 
         // Create verification link
         const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-        const verificationLink = `${baseUrl}/api/verify-email?token=${verificationToken}`;
+        const verificationLink = `${baseUrl}/api/verify-email/${verificationToken}`;
 
         // Send verification email
         try {
@@ -468,9 +450,6 @@ exports.loginUser = async (req, res) => {
         // Generate token
         const token = generateToken(user._id);
 
-        // Set token in cookie
-        res.cookie(COOKIE_NAME, token, cookieConfig);
-
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -482,7 +461,7 @@ exports.loginUser = async (req, res) => {
                 isEmailVerified: user.isEmailVerified,
                 createdAt: user.createdAt
             },
-            token
+            token // Return token for client to store and use in Authorization header
         });
 
     } catch (error) {
@@ -495,20 +474,12 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-// Logout user
+// Logout user (simplified - just returns success message)
 exports.logoutUser = async (req, res) => {
     try {
-        // Clear the cookie
-        res.clearCookie(COOKIE_NAME, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
-            path: '/'
-        });
-
         res.status(200).json({
             success: true,
-            message: 'Logout successful'
+            message: 'Logout successful. Please remove the token from your client.'
         });
 
     } catch (error) {
@@ -522,110 +493,6 @@ exports.logoutUser = async (req, res) => {
 };
 
 //forgot password -send reset email
-exports.forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
-
-        // Validate email format
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide a valid email'
-            });
-        }
-
-        // Add artificial delay to prevent timing attacks
-        const startTime = Date.now();
-
-        // Find user by email
-        const user = await User.findOne({ email: email.toLowerCase().trim() });
-
-        if (!user) {
-            // Ensure consistent response time (minimum 500ms)
-            const elapsedTime = Date.now() - startTime;
-            if (elapsedTime < 500) {
-                await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
-            }
-
-            // Don't reveal that user doesn't exist for security
-            return res.status(200).json({
-                success: true,
-                message: 'If an account with that email exists, we have sent a password reset link.'
-            });
-        }
-
-        // Check if email is verified
-        if (!user.isEmailVerified) {
-            // Ensure consistent response time (minimum 500ms)
-            const elapsedTime = Date.now() - startTime;
-            if (elapsedTime < 500) {
-                await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
-            }
-
-            return res.status(403).json({
-                success: false,
-                message: 'Please verify your email address first before resetting your password.',
-                emailVerificationRequired: true
-            });
-        }
-
-        // Generate password reset token
-        const resetToken = user.generatePasswordResetToken();
-        await user.save();
-
-        // Create reset link
-        const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-        const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
-
-        // Send password reset email
-        try {
-            await sendEmail(
-                user.email,
-                'Password Reset Request',
-                getPasswordResetTemplate(user.username, resetLink)
-            );
-        } catch (emailError) {
-            console.error('Error sending password reset email:', emailError);
-            
-            // Clear the reset token if email fails
-            user.clearPasswordResetToken();
-            await user.save();
-
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send password reset email. Please try again.'
-            });
-        }
-
-        // Ensure consistent response time (minimum 500ms)
-        const elapsedTime = Date.now() - startTime;
-        if (elapsedTime < 500) {
-            await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'If an account with that email exists, we have sent a password reset link.'
-        });
-
-    } catch (error) {
-        console.error('Error in forgot password:', error);
-
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error while processing password reset request'
-        });
-    }
-};
-
-//reset password
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
