@@ -9,12 +9,11 @@ const {
     clearCart
 } = require('./cartController');
 
-router.use(authenticateUser);
 
-router.get('/cart/get', getCart);
-router.post('/cart/add', addToCart);
-router.put('/cart/update', updateCartItem);
-router.delete('/cart/remove/:productId', removeFromCart);
-router.delete('/cart/clear', clearCart);
+router.get('/cart/get', authenticateUser ,getCart);
+router.post('/cart/add', authenticateUser ,addToCart);
+router.put('/cart/update', authenticateUser ,updateCartItem);
+router.delete('/cart/remove/:productId', authenticateUser ,removeFromCart);
+router.delete('/cart/clear', authenticateUser , clearCart);
 
 module.exports = router;

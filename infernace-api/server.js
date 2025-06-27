@@ -1,7 +1,6 @@
 const express = require('express'); //to require express
 const mongoose = require('mongoose'); //to require mongoose
 const cors = require('cors'); //to require cors
-const cookieParser = require('cookie-parser'); //to require cookie-parser
 require('dotenv').config(); //to require dotenv
 
 //connection to my env file 
@@ -12,6 +11,9 @@ const productRoute = require('./modules/product/productRoute');
 const adminRoutes = require('./modules/admin/adminRoutes');
 const userRoutes = require('./modules/user/userRoutes');
 const cartRoutes = require('./modules/cart/cartRoutes');
+const newsletterRoutes = require('./modules/newsletter/newsletterRoute');
+const orderRoutes = require('./modules/order/orderRoutes');
+const paymentRoutes = require('./modules/payment/paymentRoute');
 
 //to connect to the mongodb server
 mongoose.connect(dbUrl).then(() => {
@@ -23,7 +25,6 @@ mongoose.connect(dbUrl).then(() => {
 
 //middleware
 app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -36,6 +37,9 @@ app.use('/api', productRoute);
 app.use('/api', adminRoutes);
 app.use('/api', userRoutes);
 app.use('/api', cartRoutes);
+app.use('/api', newsletterRoutes);
+app.use('/api', orderRoutes);
+app.use('/api', paymentRoutes)
 
 app.get('/', (req, res) => {
     res.send('API is running');

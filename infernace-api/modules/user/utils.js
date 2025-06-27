@@ -1,24 +1,22 @@
 const jwt = require('jsonwebtoken');
 const User = require('./User');
 
-// Cookie name
-const COOKIE_NAME = 'userToken';
-
 // Middleware to check if user is authenticated
 exports.authenticateUser = async (req, res, next) => {
     try {
-        // Try to get token from cookie first, then fall back to Authorization header
-        let token = req.cookies?.[COOKIE_NAME];
-
-        // If no cookie token, check Authorization header (for API clients)
-        if (!token) {
-            const authHeader = req.header('Authorization');
-            if (authHeader && authHeader.startsWith('Bearer ')) {
-                token = authHeader.split(' ')[1];
-            }
+        // Get token from Authorization header
+        const authHeader = req.header('Authorization');
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Access denied. No token provided. Please log in and include Authorization header with Bearer token.'
+            });
         }
 
-        // Check if token is present
+        // Extract token from Bearer header
+        const token = authHeader.split(' ')[1];
+
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -33,16 +31,6 @@ exports.authenticateUser = async (req, res, next) => {
         const user = await User.findById(decodedToken.id).select('-password');
 
         if (!user) {
-            // Clear invalid cookie if it exists
-            if (req.cookies?.[COOKIE_NAME]) {
-                res.clearCookie(COOKIE_NAME, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
-                    path: '/'
-                });
-            }
-
             return res.status(403).json({
                 success: false,
                 message: 'Access denied. User not found.'
@@ -58,22 +46,20 @@ exports.authenticateUser = async (req, res, next) => {
             });
         }
 
+        // Check if user account is active
+        if (!user.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Your account has been deactivated.'
+            });
+        }
+
         // Attach user data to the request
         req.user = user;
         next();
 
     } catch (error) {
         console.error('Authentication error:', error);
-
-        // Clear invalid cookie if it exists
-        if (req.cookies?.[COOKIE_NAME]) {
-            res.clearCookie(COOKIE_NAME, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
-                path: '/'
-            });
-        }
 
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({
