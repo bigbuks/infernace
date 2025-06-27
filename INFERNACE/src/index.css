@@ -36,3 +36,12 @@ a.active hr{
 .swiper-pagination-bullet-active {
   opacity: 1;
 }
+
+
+/* MEDIA */
+@media (max-width:640px) {
+  a.active{
+    background-color: black;
+    color: white;
+  }
+}
