@@ -1,11 +1,17 @@
 /*=============== GOOGLE FONTS ===============*/
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prata&display=swap');
 @import "tailwindcss";
+
 
 
 body{
   font-family: Outfit;
+}
+
+.font-prata {
+  font-family: 'Prata', serif;
 }
 
 a.active hr{
@@ -37,6 +43,13 @@ a.active hr{
   opacity: 1;
 }
 
+::-webkit-scrollbar{
+  display: none;
+}
+
+.Toastify__toast {
+  font-family: "Outfit", sans-serif; 
+}
 
 /* MEDIA */
 @media (max-width:640px) {

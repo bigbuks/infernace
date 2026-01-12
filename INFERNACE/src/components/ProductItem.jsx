@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import { Link } from 'react-router-dom'
+import PropTypes from "prop-types";
 
 const ProductItem = ({id,image,name,price}) => {
 
@@ -16,5 +17,12 @@ const ProductItem = ({id,image,name,price}) => {
     </Link>
   )
 }
+
+ProductItem.propTypes = {
+    id: PropTypes.string.isRequired,
+    image: PropTypes.array.isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+};
 
 export default ProductItem

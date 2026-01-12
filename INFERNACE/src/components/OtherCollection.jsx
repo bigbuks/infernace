@@ -11,7 +11,7 @@ const OtherCollection = () => {
     useEffect(()=>{
         const otherProduct = products.filter((item)=>(item.othercollection));
         setOtherCollection(otherProduct.slice(0,5))
-    },[])
+    },[products])
 
     return (
         <div className='my-10'>

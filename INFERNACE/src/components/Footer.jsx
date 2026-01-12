@@ -38,7 +38,14 @@ const Footer = () => {
             </ul>
         </div>
 
+       
+
       </div>
+
+       <div>
+          <hr className='border-gray-300 w-full'/>
+          <p className="py-5 text-sm text-center"> &copy; 2025 Infernace - All Right Reserved.</p>
+        </div>
     </div>
   )
 }
