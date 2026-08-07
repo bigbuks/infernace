@@ -9,9 +9,20 @@ const OtherCollection = () => {
     const [otherCollection,setOtherCollection] = useState([]);
 
     useEffect(()=>{
-        const otherProduct = products.filter((item)=>(item.othercollection));
+        const otherProduct = products.filter((item)=>(item.otherCollection));
         setOtherCollection(otherProduct.slice(0,5))
     },[products])
+
+
+// useEffect(()=>{
+//     if (products && products.length > 0) {
+//         // TEMPORARY: Show products with index 2-6
+//         // This bypasses filtering and just shows some products
+//         const tempProducts = products.slice(2, 7);
+//         setOtherCollection(tempProducts);
+//         console.log('Temporary products:', tempProducts);
+//     }
+// },[products])
 
     return (
         <div className='my-10'>
