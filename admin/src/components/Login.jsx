@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import axios from 'axios'
-import { backendUrl } from '../Config';
+import { backendUrl } from '../config';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { toast } from 'react-toastify'
 
